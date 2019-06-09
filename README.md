@@ -1,3 +1,5 @@
+![build status](https://travis-ci.org/GuillaumeEveillard/search-parser.svg?branch=master)
+
 # search-parser
 
 # Summary
