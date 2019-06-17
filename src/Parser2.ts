@@ -13,10 +13,23 @@ export default class Parser2 {
             let op = this.consumeOperator(tokens);
             let rhs = this.consumeLit(tokens);
             lookahead = this.lookForOperatorAhead(tokens);
-            while(lookahead != null && lookahead.precedence > op.precedence) {
-                rhs = this.parse_2(tokens, rhs, lookahead.precedence);
-                lookahead = this.lookForOperatorAhead(tokens);
+            if(lookahead != null) {
+                if (lookahead.tag == "SP") {
+                    this.consumeOperator(tokens);
+                    let x = this.consumeLit(tokens);
+                    rhs = this.parse_2(tokens, x, 0);
+                    lookahead = this.lookForOperatorAhead(tokens);
+                } else if (lookahead.tag == "EP") {
+                    this.consumeOperator(tokens);
+                    return new BinaryExpression(op.tag, lhs, rhs);
+                } else {
+                    while (lookahead != null && lookahead.precedence > op.precedence) {
+                        rhs = this.parse_2(tokens, rhs, lookahead.precedence);
+                        lookahead = this.lookForOperatorAhead(tokens);
+                    }
+                }
             }
+
             lhs = new BinaryExpression(op.tag, lhs, rhs);
 
         }
@@ -24,8 +37,13 @@ export default class Parser2 {
     }
 
     consumeLit(tokens: string[]) : Expression | null {
-        let token = tokens.splice(0, 1)[0];
-        return this.parseLit(token);
+        let op = this.parseOperator(tokens[0])
+        if(op !== null) {
+            return null;
+        } else {
+            let token = tokens.splice(0, 1)[0];
+            return this.parseLit(token);
+        }
     }
 
     parseLit(token: string) : Expression {
@@ -53,8 +71,10 @@ export default class Parser2 {
                 return new Operator("OR", 1);
             case "!":
                 return new Operator("NOT", 3);
-            // case "(":
-            //     return new Operator("NOT", 4);
+             case "(":
+                return new Operator("SP", 4);
+            case ")":
+                return new Operator("EP", 4);
             default:
                 return null;
         }
@@ -71,7 +91,17 @@ class Operator {
     }
 }
 
-type Expression = BinaryExpression | Literal;
+type Expression = BinaryExpression | UnaryExpression | Literal;
+
+export class UnaryExpression {
+    tag: string;
+    rhs: Expression;
+
+    constructor(tag: string, rhs: Expression) {
+        this.tag = tag;
+        this.rhs = rhs;
+    }
+}
 
 export class BinaryExpression {
     tag: string;
