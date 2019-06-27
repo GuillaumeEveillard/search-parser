@@ -1,4 +1,4 @@
-import Parser2, {BinaryExpression, Literal} from "../src/Parser2";
+import Parser2, {BinaryExpression, Literal, UnaryExpression} from "../src/Parser2";
 
 
 describe('simple parsing', function () {
@@ -41,7 +41,6 @@ describe('simple parsing', function () {
                     new BinaryExpression("OR", new Literal("B"), new Literal("C"))))
     });
 
-    //TODO wrong priority between first || and &&
     it('A || ( B || C ) && D )', function () {
         expect(new Parser2().parseOk(["A", "||", "(", "B", "||", "C", ")", "&&", "D"]))
             .toStrictEqual(
@@ -53,7 +52,6 @@ describe('simple parsing', function () {
 
     });
 
-    //TODO supporte ( at the begining
     it('( A || B ) && C ', function () {
         expect(new Parser2().parseOk(["(", "A", "||", "B", ")", "&&", "C"]))
             .toStrictEqual(
@@ -69,4 +67,39 @@ describe('simple parsing', function () {
                 new BinaryExpression("OR", new Literal("B"), new Literal("C")));
 
     });
+
+    it(' !A', function() {
+        expect(new Parser2().parseOk(["!", "A"]))
+            .toStrictEqual(
+                new UnaryExpression("NOT", new Literal("A")));
+    });
+
+    it(' A && ! B', function() {
+        expect(new Parser2().parseOk(["A", "&&", "!", "B"]))
+            .toStrictEqual(
+                new BinaryExpression(
+                    "AND",
+                    new Literal("A"),
+                    new UnaryExpression("NOT", new Literal("B"))));
+    });
+
+    it('! A && B', function() {
+        expect(new Parser2().parseOk(["!", "A", "&&", "B"]))
+            .toStrictEqual(
+                new BinaryExpression(
+                    "AND",
+                    new UnaryExpression("NOT", new Literal("A")),
+                    new Literal("B")));
+    });
+
+    it('! ( A && B )', function() {
+        expect(new Parser2().parseOk(["!", "(", "A", "&&", "B", ")"]))
+            .toStrictEqual(
+                new UnaryExpression("NOT",
+                new BinaryExpression(
+                    "AND",
+                    new Literal("A"),
+                    new Literal("B"))));
+    });
+
 });

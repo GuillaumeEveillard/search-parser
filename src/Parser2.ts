@@ -2,7 +2,7 @@
 export default class Parser2 {
 
 
-    parseOk(tokens: string[]) {
+    parseOk(tokens: string[]) : Expression{
         let lhs = this.consumeLit(tokens);
         return this.parse_2(tokens, lhs, 0);
     }
@@ -15,6 +15,10 @@ export default class Parser2 {
             if(op.tag == "SP") {
                 let x = this.consumeLit(tokens);
                 lhs = this.parse_2(tokens, x, 0);
+                lookahead = this.lookForOperatorAhead(tokens);
+            } else if(op.tag == "NOT") {
+                let x = this.consumeLit(tokens);
+                lhs = new UnaryExpression(op.tag, this.parse_2(tokens, x, op.precedence));
                 lookahead = this.lookForOperatorAhead(tokens);
             } else {
                 rhs = this.consumeLit(tokens);
@@ -42,7 +46,7 @@ export default class Parser2 {
                         }
                     }
                 }
-                lhs = new BinaryExpression(op.tag, lhs, rhs);
+                    lhs = new BinaryExpression(op.tag, lhs, rhs);
             }
         }
         return lhs;
