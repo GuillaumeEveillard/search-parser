@@ -42,7 +42,7 @@ describe('simple parsing', function () {
     });
 
     //TODO wrong priority between first || and &&
-    it('A || ( B || C) && D )', function () {
+    it('A || ( B || C ) && D )', function () {
         expect(new Parser2().parseOk(["A", "||", "(", "B", "||", "C", ")", "&&", "D"]))
             .toStrictEqual(
                 new BinaryExpression("OR",
@@ -54,12 +54,19 @@ describe('simple parsing', function () {
     });
 
     //TODO supporte ( at the begining
-    it('( A || B) && C )', function () {
+    it('( A || B ) && C ', function () {
         expect(new Parser2().parseOk(["(", "A", "||", "B", ")", "&&", "C"]))
             .toStrictEqual(
                 new BinaryExpression("AND",
                     new BinaryExpression("OR", new Literal("A"), new Literal("B")),
                     new Literal("C")));
+
+    });
+
+    it('( B || C )', function () {
+        expect(new Parser2().parseOk(["(", "B", "||", "C", ")"]))
+            .toStrictEqual(
+                new BinaryExpression("OR", new Literal("B"), new Literal("C")));
 
     });
 });

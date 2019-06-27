@@ -11,27 +11,39 @@ export default class Parser2 {
         let lookahead = this.lookForOperatorAhead(tokens);
         while (lookahead != null && lookahead.precedence >= minPrecedence) {
             let op = this.consumeOperator(tokens);
-            let rhs = this.consumeLit(tokens);
-            lookahead = this.lookForOperatorAhead(tokens);
-            if(lookahead != null) {
-                if (lookahead.tag == "SP") {
-                    this.consumeOperator(tokens);
-                    let x = this.consumeLit(tokens);
-                    rhs = this.parse_2(tokens, x, 0);
-                    lookahead = this.lookForOperatorAhead(tokens);
-                } else if (lookahead.tag == "EP") {
-                    this.consumeOperator(tokens);
-                    return new BinaryExpression(op.tag, lhs, rhs);
-                } else {
-                    while (lookahead != null && lookahead.precedence > op.precedence) {
-                        rhs = this.parse_2(tokens, rhs, lookahead.precedence);
+            let rhs;
+            if(op.tag == "SP") {
+                let x = this.consumeLit(tokens);
+                lhs = this.parse_2(tokens, x, 0);
+                lookahead = this.lookForOperatorAhead(tokens);
+            } else {
+                rhs = this.consumeLit(tokens);
+
+                lookahead = this.lookForOperatorAhead(tokens);
+                if(lookahead != null) {
+                    if (lookahead.tag == "SP") {
+                        this.consumeOperator(tokens);
+                        let x = this.consumeLit(tokens);
+                        rhs = this.parse_2(tokens, x, 0);
                         lookahead = this.lookForOperatorAhead(tokens);
+                        //---
+                        while (lookahead != null && lookahead.precedence > op.precedence) {
+                            rhs = this.parse_2(tokens, rhs, lookahead.precedence);
+                            lookahead = this.lookForOperatorAhead(tokens);
+                        }
+                    } else if (lookahead.tag == "EP") {
+                        this.consumeOperator(tokens);
+                        return new BinaryExpression(op.tag, lhs, rhs);
+                    } else {
+                        //---
+                        while (lookahead != null && lookahead.precedence > op.precedence) {
+                            rhs = this.parse_2(tokens, rhs, lookahead.precedence);
+                            lookahead = this.lookForOperatorAhead(tokens);
+                        }
                     }
                 }
+                lhs = new BinaryExpression(op.tag, lhs, rhs);
             }
-
-            lhs = new BinaryExpression(op.tag, lhs, rhs);
-
         }
         return lhs;
     }
