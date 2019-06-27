@@ -68,6 +68,13 @@ describe('simple parsing', function () {
 
     });
 
+    it('B || ( C )', function () {
+        expect(new Parser2().parseOk(["B", "||", "(", "C", ")"]))
+            .toStrictEqual(
+                new BinaryExpression("OR", new Literal("B"), new Literal("C")));
+
+    });
+
     it(' !A', function() {
         expect(new Parser2().parseOk(["!", "A"]))
             .toStrictEqual(

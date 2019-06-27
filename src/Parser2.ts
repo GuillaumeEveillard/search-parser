@@ -20,6 +20,8 @@ export default class Parser2 {
                 let x = this.consumeLit(tokens);
                 lhs = new UnaryExpression(op.tag, this.parse_2(tokens, x, op.precedence));
                 lookahead = this.lookForOperatorAhead(tokens);
+            } else if (op.tag == "EP") {
+                return lhs;
             } else {
                 rhs = this.consumeLit(tokens);
 
