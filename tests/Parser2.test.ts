@@ -90,6 +90,15 @@ describe('simple parsing', function () {
                     new UnaryExpression("NOT", new Literal("B"))));
     });
 
+    it('( A && ! B )', function() {
+        expect(new Parser2().parseOk(["(", "A", "&&", "!", "B", ")"]))
+            .toStrictEqual(
+                new BinaryExpression(
+                    "AND",
+                    new Literal("A"),
+                    new UnaryExpression("NOT", new Literal("B"))));
+    });
+
     it('! A && B', function() {
         expect(new Parser2().parseOk(["!", "A", "&&", "B"]))
             .toStrictEqual(
@@ -109,4 +118,40 @@ describe('simple parsing', function () {
                     new Literal("B"))));
     });
 
+    it('( A || ! B ) && C ', function () {
+        expect(new Parser2().parseOk(["(", "A", "||", "!", "B", ")", "&&", "C"]))
+            .toStrictEqual(
+                new BinaryExpression("AND",
+                    new BinaryExpression("OR",
+                        new Literal("A"),
+                        new UnaryExpression("NOT", new Literal("B"))),
+                    new Literal("C")));
+
+    });
+
+    it('! ( A && ! B ) && C', function() {
+        expect(new Parser2().parseOk(["!", "(", "A", "&&", "!", "B", ")", "&&", "C"]))
+            .toStrictEqual(
+                new BinaryExpression("AND",
+                    new UnaryExpression("NOT",
+                        new BinaryExpression(
+                            "AND",
+                            new Literal("A"),
+                            new UnaryExpression("NOT", new Literal("B")))),
+                    new Literal("C")));
+    });
+
+
+    it('A || ! ( B && ! C ) && ! ( D )', function() {
+        expect(new Parser2().parseOk(["A", "||", "!", "(", "B", "&&", "!", "C", ")", "&&", "!", "(", "D", ")"]))
+            .toStrictEqual(
+                new BinaryExpression("OR",
+                    new Literal("A"),
+                    new BinaryExpression("AND",
+                        new UnaryExpression("NOT",
+                            new BinaryExpression("AND",
+                                new Literal("B"),
+                                new UnaryExpression("NOT", new Literal("C")))),
+                        new UnaryExpression("NOT", new Literal("D")))));
+    });
 });

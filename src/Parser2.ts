@@ -92,7 +92,7 @@ export default class Parser2 {
              case "(":
                 return new Operator("SP", 4);
             case ")":
-                return new Operator("EP", 4);
+                return new Operator("EP", 0);
             default:
                 return null;
         }
@@ -113,11 +113,11 @@ type Expression = BinaryExpression | UnaryExpression | Literal;
 
 export class UnaryExpression {
     tag: string;
-    rhs: Expression;
+    exp: Expression;
 
     constructor(tag: string, rhs: Expression) {
         this.tag = tag;
-        this.rhs = rhs;
+        this.exp = rhs;
     }
 }
 
