@@ -108,7 +108,7 @@ class Operator {
     }
 }
 
-type Expression = BinaryExpression | UnaryExpression | Literal;
+export type Expression = BinaryExpression | UnaryExpression | Literal;
 
 export class UnaryExpression {
     tag: string;
