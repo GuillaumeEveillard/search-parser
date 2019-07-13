@@ -48,7 +48,7 @@ export default class Parser2 {
                         }
                     }
                 }
-                    lhs = new BinaryExpression(op.tag, lhs, rhs);
+                lhs = new BinaryExpression(op.tag, lhs, rhs);
             }
         }
         return lhs;
@@ -115,9 +115,9 @@ export class UnaryExpression {
     tag: string;
     exp: Expression;
 
-    constructor(tag: string, rhs: Expression) {
+    constructor(tag: string, exp: Expression) {
         this.tag = tag;
-        this.exp = rhs;
+        this.exp = exp;
     }
 }
 
@@ -125,7 +125,6 @@ export class BinaryExpression {
     tag: string;
     lhs: Expression;
     rhs: Expression;
-
 
     constructor(tag: string, lhs: Expression, rhs: Expression) {
         this.tag = tag;
@@ -141,31 +140,3 @@ export class Literal {
         this.lit = lit;
     }
 }
-
-// type Expression = And | Or | Not | Literal;
-//
-// interface And {
-//     tag: "AND";
-//     precedence: 2;
-//     lhs: Expression;
-//     rhs: Expression;
-// }
-//
-// interface Or {
-//     tag: "OR";
-//     precedence: 1;
-//     lhs: Expression;
-//     rhs: Expression;
-// }
-//
-// interface Not {
-//     tag: "NOT";
-//     precedence: 3;
-//     exp: Expression;
-// }
-//
-// interface Literal {
-//     tag: "LIT";
-//     precedence: 0;
-//     s: string;
-// }

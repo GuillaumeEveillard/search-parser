@@ -154,4 +154,16 @@ describe('simple parsing', function () {
                                 new UnaryExpression("NOT", new Literal("C")))),
                         new UnaryExpression("NOT", new Literal("D")))));
     });
+
+    it('A && ((B || C) && D)', function () {
+        expect(new Parser2().parseOk(["A", "&&", "(", "(", "B", "||", "C", ")", "&&", "D", ")"]))
+            .toStrictEqual(
+                new BinaryExpression("AND",
+                    new Literal("A"),
+                    new BinaryExpression("AND",
+                        new BinaryExpression("OR",
+                            new Literal("B"),
+                            new Literal("C")),
+                        new Literal("D"))));
+    });
 });
