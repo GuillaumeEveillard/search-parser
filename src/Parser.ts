@@ -1,46 +1,141 @@
+
 export default class Parser {
-    static parse(pattern: string) : (x :string) => boolean {
-      let tokens = this.token(pattern);
-      let p = Parser.build(tokens);
-      return p;
+
+    static parse(tokens: string[]) : Expression{
+        let lhs = Parser.consumeLit(tokens);
+        return Parser.internalParse(tokens, lhs, 0);
     }
 
-
-    static token(text: string) : string[] {
-        let splitByQuote = text.split("\"");
-        return splitByQuote
-            .flatMap((v, i) => i % 2 == 0 ? v.split(" ") : [v])
-            .map(x => x.trim())
-            .filter(x => x.length != 0);
-    }
-
-    static build(tokens: string[]) : (x :string) => boolean {
-        if(tokens.length == 0) {
-            throw "Expected token";
-        } else if(tokens.length == 1) {
-            let string1 = tokens[0];
-            return x => x.includes(string1);
-        } else {
-            let t0 = tokens[0];
-            if(t0 == "!") {
-                tokens.splice(0,1);
-                let exp = this.build(tokens);
-                return x => !exp(x);
+    private static internalParse(tokens: string[], lhs: Expression, minPrecedence: number) : Expression {
+        let lookahead = Parser.lookForOperatorAhead(tokens);
+        while (lookahead != null && lookahead.precedence >= minPrecedence) {
+            let op = Parser.consumeOperator(tokens);
+            let rhs;
+            if(op.tag == "SP") {
+                let x = Parser.consumeLit(tokens);
+                lhs = Parser.internalParse(tokens, x, 0);
+                lookahead = Parser.lookForOperatorAhead(tokens);
+            } else if(op.tag == "NOT") {
+                let x = Parser.consumeLit(tokens);
+                lhs = new UnaryExpression(op.tag, this.internalParse(tokens, x, op.precedence));
+                lookahead = Parser.lookForOperatorAhead(tokens);
+            } else if (op.tag == "EP") {
+                return lhs;
             } else {
-                let lhs = x => x.includes(t0);
-                let operator = tokens[1];
-                tokens.splice(0, 2);
-                let rhs = this.build(tokens);
-                switch (operator) {
-                    case "&&":
-                        return x => lhs(x) && rhs(x);
-                    case "||":
-                        return x => lhs(x) || rhs(x);
-                    default:
-                        throw "Unsupported operator " + operator;
+                rhs = Parser.consumeLit(tokens);
 
+                lookahead = Parser.lookForOperatorAhead(tokens);
+                if(lookahead != null) {
+                    if (lookahead.tag == "SP") {
+                        Parser.consumeOperator(tokens);
+                        let x = Parser.consumeLit(tokens);
+                        rhs = Parser.internalParse(tokens, x, 0);
+                        lookahead = Parser.lookForOperatorAhead(tokens);
+                        //---
+                        while (lookahead != null && lookahead.precedence > op.precedence) {
+                            rhs = Parser.internalParse(tokens, rhs, lookahead.precedence);
+                            lookahead = Parser.lookForOperatorAhead(tokens);
+                        }
+                    } else if (lookahead.tag == "EP") {
+                        Parser.consumeOperator(tokens);
+                        return new BinaryExpression(op.tag, lhs, rhs);
+                    } else {
+                        //---
+                        while (lookahead != null && lookahead.precedence > op.precedence) {
+                            rhs = Parser.internalParse(tokens, rhs, lookahead.precedence);
+                            lookahead = Parser.lookForOperatorAhead(tokens);
+                        }
+                    }
                 }
+                lhs = new BinaryExpression(op.tag, lhs, rhs);
             }
         }
+        return lhs;
+    }
+
+    private static consumeLit(tokens: string[]) : Expression | null {
+        let op = Parser.parseOperator(tokens[0])
+        if(op !== null) {
+            return null;
+        } else {
+            let token = tokens.splice(0, 1)[0];
+            return Parser.parseLit(token);
+        }
+    }
+
+    private static parseLit(token: string) : Expression {
+        return new Literal(token);
+    }
+
+    private static consumeOperator(tokens: string[]) : Operator | null {
+        let token = tokens.splice(0, 1)[0];
+        return Parser.parseOperator(token);
+    }
+
+    private static lookForOperatorAhead(tokens: string[]) : Operator | null {
+        for (const token of tokens) {
+            let op = Parser.parseOperator(token);
+            if(op !== null) return op;
+        }
+        return null;
+    }
+
+    private static parseOperator(token: string) : Operator {
+        switch (token) {
+            case "&&":
+                return new Operator("AND", 2);
+            case "||":
+                return new Operator("OR", 1);
+            case "!":
+                return new Operator("NOT", 3);
+             case "(":
+                return new Operator("SP", 4);
+            case ")":
+                return new Operator("EP", 0);
+            default:
+                return null;
+        }
+    }
+}
+
+class Operator {
+    tag: string;
+    precedence: number;
+
+    constructor(tag: string, precedence: number) {
+        this.tag = tag;
+        this.precedence = precedence;
+    }
+}
+
+type Expression = BinaryExpression | UnaryExpression | Literal;
+
+export class UnaryExpression {
+    tag: string;
+    exp: Expression;
+
+    constructor(tag: string, exp: Expression) {
+        this.tag = tag;
+        this.exp = exp;
+    }
+}
+
+export class BinaryExpression {
+    tag: string;
+    lhs: Expression;
+    rhs: Expression;
+
+    constructor(tag: string, lhs: Expression, rhs: Expression) {
+        this.tag = tag;
+        this.lhs = lhs;
+        this.rhs = rhs;
+    }
+}
+
+export class Literal {
+    lit: string;
+
+    constructor(lit: string) {
+        this.lit = lit;
     }
 }
