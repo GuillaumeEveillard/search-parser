@@ -1,6 +1,6 @@
 {
   "name": "search-parser",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "dependencies": {
     "@types/jest": "^24.0.13",
     "jest": "^24.8.0",
