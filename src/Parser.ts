@@ -6,7 +6,7 @@ export default class Parser {
         return Parser.internalParse(tokens, lhs, 0);
     }
 
-    private static internalParse(tokens: string[], lhs: Expression, minPrecedence: number) : Expression {
+    private static internalParse(tokens: string[], lhs: Expression | null, minPrecedence: number) : Expression {
         let lookahead = Parser.lookForOperatorAhead(tokens);
         while (lookahead != null && lookahead.precedence >= minPrecedence) {
             let op = Parser.consumeOperator(tokens);
@@ -20,6 +20,9 @@ export default class Parser {
                 lhs = new UnaryExpression(op.tag, this.internalParse(tokens, x, op.precedence));
                 lookahead = Parser.lookForOperatorAhead(tokens);
             } else if (op.tag == "EP") {
+                if(lhs == null) {
+                    throw new Error("lhs cannot be null");
+                }
                 return lhs;
             } else {
                 rhs = Parser.consumeLit(tokens);
@@ -38,6 +41,12 @@ export default class Parser {
                         }
                     } else if (lookahead.tag == "EP") {
                         Parser.consumeOperator(tokens);
+                        if(lhs == null) {
+                            throw new Error("lhs cannot be null");
+                        }
+                        if(rhs == null) {
+                            throw new Error("rhs cannot be null");
+                        }
                         return new BinaryExpression(op.tag, lhs, rhs);
                     } else {
                         //---
@@ -47,14 +56,23 @@ export default class Parser {
                         }
                     }
                 }
+                if(lhs == null) {
+                    throw new Error("lhs cannot be null");
+                }
+                if(rhs == null) {
+                    throw new Error("rhs cannot be null");
+                }
                 lhs = new BinaryExpression(op.tag, lhs, rhs);
             }
+        }
+        if(lhs == null) {
+            throw new Error("lhs cannot be null");
         }
         return lhs;
     }
 
     private static consumeLit(tokens: string[]) : Expression | null {
-        let op = Parser.parseOperator(tokens[0])
+        let op = Parser.parseOperator(tokens[0]);
         if(op !== null) {
             return null;
         } else {
@@ -67,9 +85,13 @@ export default class Parser {
         return new Literal(token);
     }
 
-    private static consumeOperator(tokens: string[]) : Operator | null {
+    private static consumeOperator(tokens: string[]) : Operator  {
         let token = tokens.splice(0, 1)[0];
-        return Parser.parseOperator(token);
+        let op = Parser.parseOperator(token);
+        if(op == null) {
+            throw new Error("op cannot be null");
+        }
+        return op;
     }
 
     private static lookForOperatorAhead(tokens: string[]) : Operator | null {
@@ -80,7 +102,7 @@ export default class Parser {
         return null;
     }
 
-    private static parseOperator(token: string) : Operator {
+    private static parseOperator(token: string) : Operator | null {
         switch (token) {
             case "&&":
                 return new Operator("AND", 2);
