@@ -1,7 +1,7 @@
 import Parser, {BinaryExpression, Literal, UnaryExpression} from "../src/Parser";
 
 
-describe('simple parsing', function () {
+describe('correct expression', function () {
     it('A && B', function () {
         expect(Parser.parse(["A", "&&", "B"]))
             .toStrictEqual(new BinaryExpression("AND", new Literal("A"), new Literal("B")))
@@ -79,6 +79,12 @@ describe('simple parsing', function () {
         expect(Parser.parse(["!", "A"]))
             .toStrictEqual(
                 new UnaryExpression("NOT", new Literal("A")));
+    });
+
+    it(' !!A', function() {
+        expect(Parser.parse(["!", "!", "A"]))
+            .toStrictEqual(
+                new UnaryExpression("NOT", new UnaryExpression("NOT", new Literal("A"))));
     });
 
     it(' A && ! B', function() {
@@ -165,5 +171,48 @@ describe('simple parsing', function () {
                             new Literal("B"),
                             new Literal("C")),
                         new Literal("D"))));
+    });
+});
+
+
+describe('incorrect expression', function () {
+    it('&& B', function () {
+        expect(() => Parser.parse(["&&", "B"])).toThrow()
+    });
+
+    it('A &&', function () {
+        expect(() => Parser.parse(["A", "&&"])).toThrow()
+    });
+
+    it('A && !', function () {
+        expect(() => Parser.parse(["&&", "B", "!"])).toThrow()
+    });
+
+    it('(A && B', function () {
+        expect(() => Parser.parse(["(", "A", "&&", "B"])).toThrow()
+    });
+
+    it('A ) B', function () {
+        expect(() => Parser.parse(["A", ")", "B"])).toThrow()
+    });
+
+    it('A ) B ( C', function () {
+        expect(() => Parser.parse(["A", ")", "B", "(", "C"])).toThrow()
+    });
+
+    it('A && ) B', function () {
+        expect(() => Parser.parse(["A", "&&", ")", "B"])).toThrow()
+    });
+
+    it('A B', function () {
+        expect(() => Parser.parse(["A", "B"])).toThrow()
+    });
+
+    it('A && || B', function () {
+        expect(() => Parser.parse(["A", "&&", "||", "B"])).toThrow()
+    });
+
+    it('A &&& B', function () {
+        expect(() => Parser.parse(["A", "&&&", "B"])).toThrow()
     });
 });
