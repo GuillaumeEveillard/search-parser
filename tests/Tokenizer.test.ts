@@ -14,3 +14,23 @@ describe('tokenize valid strings', function () {
         expect(Tokenizer.token("\"token 1\" \"token 2\" z")).toStrictEqual(["token 1", "token 2", "z"])
     });
 });
+
+
+describe('operator are detected even if not separated by space', function () {
+    it('&&', function () {
+        expect(Tokenizer.token("a&&b")).toStrictEqual(["a", "&&", "b"])
+    });
+    it('||', function () {
+        expect(Tokenizer.token("a||b")).toStrictEqual(["a", "||", "b"])
+    });
+    it('!', function () {
+        expect(Tokenizer.token("!a")).toStrictEqual(["!", "a"])
+    });
+    it('(', function () {
+        expect(Tokenizer.token("(a(")).toStrictEqual(["(", "a", "("])
+    });
+    it(')', function () {
+        expect(Tokenizer.token(")a)")).toStrictEqual([")", "a", ")"])
+    });
+});
+
